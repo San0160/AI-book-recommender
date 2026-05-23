@@ -5,3 +5,5 @@ PyYAML
 streamlit
 notebook
 aiohttp
+
+-e .  # Looks for setup.py
