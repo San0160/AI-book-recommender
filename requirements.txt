@@ -6,4 +6,6 @@ streamlit
 notebook
 aiohttp
 
--e .  # Looks for setup.py
+python-box==6.0.2
+
+-e . 

@@ -1,0 +1,35 @@
+# Template for dataset path
+
+artifacts_root: artifacts
+
+data_injection:
+  root_dir: artifacts/data_injection
+  source_URL: https://www.kaggle.com/api/v1/datasets/download/jealousleopard/goodreadsbooks
+  local_data_file: artifacts/data_injection/data.zip
+  unzip_dir: artifacts/data_injection
+
+
+data_validation:
+  root_dir: artifacts/data_validation
+  STATUS_FILE: artifacts/data_validation/status.txt
+  ALL_REQUIRED_FILES: ["train", "test", "validation"]
+
+
+data_transformation:
+  root_dir:  artifacts/data_transformation
+  data_path: artifacts/data_injection/samsum_dataset
+  tokenizer_name: "t5-small"
+
+
+model_trainer:
+  root_dir:  artifacts/model_trainer
+  data_path: artifacts/data_transformation/samsum_dataset
+  model_ckpt: t5-small
+
+
+model_evaluation:
+  root_dir:  artifacts/model_trainer
+  data_path: artifacts/data_transformation/samsum_dataset
+  model_path: artifacts/model_trainer/t5-samsum-final
+  tokenizer_path: artifacts/model_trainer/tokenizer
+  metric_file_name: artifacts/model_evaulation/metrics.csv

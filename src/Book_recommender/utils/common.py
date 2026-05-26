@@ -1,12 +1,13 @@
 from pathlib import Path
 import yaml
 import sys
+import os
 
 from box import ConfigBox
 from ensure import ensure_annotations
 
 from Book_recommender.logging.log import logging
-from Book_recommender.exception.exception import CustomException
+from Book_recommender.exception.exception_handler import CustomException
 
 
 @ensure_annotations
@@ -37,3 +38,17 @@ def read_yaml(path_to_yaml: Path) -> ConfigBox:
         logging.error(f"Failed to read YAML file: {path_to_yaml}")
 
         raise CustomException(e, sys) from e
+    
+
+@ensure_annotations
+def create_directories(path_to_directories: list, verbose = True):
+    """create list of directories
+    
+    args:
+        path to directories (list) : list of path to directories
+        ignore_log (bool, optional): ignore if multiple directories is to be created. default to false
+    """
+    for path in path_to_directories:
+        os.makedirs(path, exist_ok=True)
+        if verbose:
+            logging.info(f"created directory at {path}")
