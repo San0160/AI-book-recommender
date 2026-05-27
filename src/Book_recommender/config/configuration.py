@@ -1,6 +1,6 @@
 from Book_recommender.constant import *
 from Book_recommender.utils.common import read_yaml, create_directories
-from Book_recommender.entity.config_entity import (DataInjestionConfig)
+from Book_recommender.entity.config_entity import (DataInjestionConfig, DatavalidationConfig)
 
 # 4 Update configuration manager
 
@@ -28,3 +28,16 @@ class configurationManager:
         )
 
         return data_injection_config
+    
+    def get_data_validation_config(self) -> DatavalidationConfig:
+        config = self.config.data_validation
+
+        create_directories([config.root_dir])
+
+        data_validation_config = DatavalidationConfig(
+            root_dir = config.root_dir,
+            STATUS_FILE = config.STATUS_FILE,
+            ALL_REQUIRED_FILES = config.ALL_REQUIRED_FILES
+        )
+
+        return data_validation_config
