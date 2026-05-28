@@ -18,10 +18,10 @@ data_processing:
   root_dir: artifacts/data_preprocessing
   local_data_file: artifacts/data_preprocessing/processed_data.csv
 
-#data_transformation:
-#   root_dir:  artifacts/data_transformation
-#   data_path: artifacts/data_injection/samsum_dataset
-#   tokenizer_name: "t5-small"
+data_transformation:
+  root_dir:  artifacts/data_transformation
+  data_path: artifacts/data_injection/samsum_dataset
+  tokenizer_name: "t5-small"
 
 
 # model_trainer:
