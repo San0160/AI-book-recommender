@@ -19,9 +19,9 @@ data_processing:
   local_data_file: artifacts/data_preprocessing/processed_data.csv
 
 data_transformation:
-  root_dir:  artifacts/data_transformation
-  data_path: artifacts/data_injection/samsum_dataset
-  tokenizer_name: "t5-small"
+  root_dir: artifacts/data_transformation
+  data_path: artifacts/data_ingestion/processed_data.csv
+  vectorizer_path: artifacts/data_transformation/tfidf.pkl
 
 
 # model_trainer:

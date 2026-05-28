@@ -25,7 +25,7 @@ class DataProcessingConfig:
 class DataTransformationConfig:
     root_dir: Path
     data_path: Path
-    artifacts_dir: Path
+    vectorizer_path: Path
 
 @dataclass(frozen=True)
 class ModelTrainerConfig:
