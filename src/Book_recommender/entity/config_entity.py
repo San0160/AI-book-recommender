@@ -9,13 +9,17 @@ class DataInjestionConfig:
     root_dir: Path
     source_URL: str
     local_data_file: Path
-    unzip_dir: Path
 
 @dataclass(frozen = True)
 class DatavalidationConfig:
     root_dir: Path
     STATUS_FILE: str
     ALL_REQUIRED_FILES: list
+
+@dataclass(frozen = True)
+class DataProcessingConfig:
+    root_dir: Path
+    local_data_file: Path
 
 @dataclass(frozen=True)
 class DataTransformationConfig:

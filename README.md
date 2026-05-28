@@ -17,3 +17,6 @@ conda activate books
 pip install -r requirements.txt
 ```
 
+### Imporvements, exception handler not present in source code
+### Data/model not from hugging face
+### Data processing -> read_csv in pipeline code 

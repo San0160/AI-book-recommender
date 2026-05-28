@@ -5,6 +5,7 @@ PyYAML
 streamlit
 notebook
 aiohttp
+datasets
 
 python-box==6.0.2
 
