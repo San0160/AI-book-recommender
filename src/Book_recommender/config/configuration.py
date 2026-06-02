@@ -1,6 +1,11 @@
 from Book_recommender.constant import *
 from Book_recommender.utils.common import read_yaml, create_directories
-from Book_recommender.entity.config_entity import (DataInjestionConfig, DatavalidationConfig, DataProcessingConfig, DataTransformationConfig, ModelTrainerConfig)
+from Book_recommender.entity.config_entity import (DataInjestionConfig,
+                                                   DatavalidationConfig,
+                                                   DataProcessingConfig,
+                                                   DataTransformationConfig,
+                                                   ModelTrainerConfig,
+                                                   ModelEvaluationConfig)
 
 # 4 Update configuration manager
 
@@ -66,6 +71,7 @@ class configurationManager:
         )
 
         return data_transformation_config
+    
     def get_model_trainer_config(self) -> ModelTrainerConfig:
         config = self.config.model_trainer
 
@@ -81,4 +87,20 @@ class configurationManager:
             algorithm = config.algorithm
         )
         return model_trainer_config
+    
+    def get_model_evaluation_config(self) -> ModelEvaluationConfig:
+        config = self.config.model_evaluation
+
+        create_directories([config.root_dir])
+
+        model_evaluation_config = ModelEvaluationConfig(  
+            root_dir=config.root_dir,
+            data_path=config.data_path,
+            model_path=config.model_path,
+            metrics_file = config.metrics_file,
+            sample_size = config.sample_size,     
+            n_recommendations =  config.n_recommendations
+        )
+
+        return model_evaluation_config
         

@@ -36,3 +36,12 @@ class ModelTrainerConfig:
     n_neighbors: int
     metric: str
     algorithm: str
+
+@dataclass(frozen=True)
+class ModelEvaluationConfig:
+    root_dir: Path
+    data_path: Path
+    model_path: Path
+    metrics_file: Path
+    sample_size: int      
+    n_recommendations: int 

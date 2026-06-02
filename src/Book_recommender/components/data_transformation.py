@@ -1,6 +1,8 @@
 import os
 import joblib
 from sklearn.feature_extraction.text import TfidfVectorizer
+from Book_recommender.logging.log import logger
+import pandas as pd
 
 #Component
 class DataTransformation:
@@ -22,4 +24,13 @@ class DataTransformation:
         )
 
     def save(self, path):
+
+        df = pd.read_csv(self.config.data_path)
+        # save vectorizer
         joblib.dump(self.vectorizer, path)
+        logger.info(f"Vectorizer saved to {path}")
+
+        # save tfidf matrix separately
+        tfidf_matrix = self.vectorizer.transform(df["combined_features"])
+        joblib.dump(tfidf_matrix, "artifacts/data_transformation/tfidf_matrix.pkl")
+        logger.info("TF-IDF matrix saved")
