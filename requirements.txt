@@ -6,6 +6,10 @@ streamlit
 notebook
 aiohttp
 datasets
+fastapi
+
+
+jinja2
 
 python-box==6.0.2
 

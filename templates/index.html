@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Book Recommender</title>
+    <style>
+        body { font-family: sans-serif; max-width: 900px; margin: 40px auto; padding: 0 20px; }
+        input { padding: 8px; margin: 5px; border: 1px solid #ddd; border-radius: 4px; }
+        button { padding: 8px 20px; background: #4a90e2; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        .books { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 20px; }
+        .book { width: 130px; text-align: center; }
+        .book img { width: 100px; height: 150px; object-fit: cover; border-radius: 4px; border: 1px solid #ddd; }
+        .book p { font-size: 11px; margin: 4px 0; }
+        .error { color: red; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <h2>📚 Book Recommender</h2>
+    <div>
+        <input id="title"  placeholder="Book title"       style="width:200px"/>
+        <input id="author" placeholder="Author (optional)" style="width:150px"/>
+        <input id="genre"  placeholder="Genre (optional)"  style="width:130px"/>
+        <input id="rating" placeholder="Min rating" type="number" step="0.1" min="0" max="5" style="width:90px"/>
+        <input id="n"      placeholder="Count" type="number" value="5" style="width:60px"/>
+        <button onclick="search()">Search</button>
+    </div>
+    <div id="error" class="error"></div>
+    <div id="results" class="books"></div>
+
+    <script>
+        async function search() {
+            const title  = document.getElementById("title").value;
+            const author = document.getElementById("author").value;
+            const genre  = document.getElementById("genre").value;
+            const rating = document.getElementById("rating").value || 0;
+            const n      = document.getElementById("n").value || 5;
+
+            document.getElementById("error").innerText = "";
+            document.getElementById("results").innerHTML = "Loading...";
+
+            const params = new URLSearchParams();
+            if (title)  params.append("title", title);
+            if (author) params.append("author", author);
+            if (genre)  params.append("genre", genre);
+            if (rating) params.append("min_rating", rating);
+            params.append("n", n);
+
+            try {
+                const res  = await fetch(`/recommend?${params}`);
+                const data = await res.json();
+
+                if (!res.ok) {
+                    document.getElementById("error").innerText = data.detail;
+                    document.getElementById("results").innerHTML = "";
+                    return;
+                }
+
+                document.getElementById("results").innerHTML = data.recommendations.map(book => `
+                    <div class="book">
+                        <img src="${book.cover_url}"
+                             onerror="this.src='https://via.placeholder.com/100x150?text=No+Cover'"/>
+                        <p><b>${book.title.substring(0, 40)}</b></p>
+                        <p style="color:gray">${book.authors.substring(0, 30)}</p>
+                        <p>⭐ ${book.average_rating}</p>
+                        <p style="color:#888">${book.genre}</p>
+                    </div>
+                `).join("");
+
+            } catch(e) {
+                document.getElementById("error").innerText = "Something went wrong";
+                document.getElementById("results").innerHTML = "";
+            }
+        }
+    </script>
+</body>
+</html>
