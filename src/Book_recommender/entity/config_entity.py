@@ -31,6 +31,8 @@ class DataTransformationConfig:
 class ModelTrainerConfig:
     root_dir: Path
     data_path: Path
+    vectorizer_path: Path
+    model_path: Path
     n_neighbors: int
     metric: str
     algorithm: str

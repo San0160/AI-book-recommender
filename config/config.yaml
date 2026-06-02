@@ -24,11 +24,14 @@ data_transformation:
   vectorizer_path: artifacts/data_transformation/tfidf.pkl
 
 
-# model_trainer:
-#   root_dir:  artifacts/model_trainer
-#   data_path: artifacts/data_transformation/samsum_dataset
-#   model_ckpt: t5-small
-
+model_trainer:
+  root_dir:  artifacts/model_trainer
+  data_path: artifacts/data_preprocessing/processed_data.csv
+  vectorizer_path: artifacts/data_transformation/tfidf.pkl
+  model_path: artifacts/model_trainer/knn_model.pkl
+  n_neighbors: 10
+  metric: cosine
+  algorithm: brute
 
 # model_evaluation:
 #   root_dir:  artifacts/model_trainer
