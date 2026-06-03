@@ -74,26 +74,6 @@ Given a book title, author, or genre, the system returns personalised recommenda
 | `GET /genres` | List all available genres |
 | `GET /docs` | Interactive Swagger UI |
 
-## Quickstart
-
-```bash
-# 1. Clone the repo
-git clone https://github.com/San0160/AI-book-recommender.git
-cd AI-book-recommender
-
-# 2. Create environment
-conda create -n books python=3.12 -y
-conda activate books
-
-# 3. Install dependencies
-pip install -r requirements.txt
-
-# 4. Run the training pipeline
-python main.py
-
-# 5. Start the API
-python app.py
-```
 
 Visit `http://localhost:8080` for the search UI or `http://localhost:8080/docs` for the API explorer.
 
