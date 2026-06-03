@@ -15,14 +15,17 @@ conda activate books
 
 ```bash
 pip install -r requirements.txt
+```
 
 ### Step3: Get model artifacts
 ```bash
 python main.py
+```
 
 # Step4: Run the app locally
 ```bash
 app.py
+```
 
 ## Description
 # 📚 AI Book Recommender
