@@ -7,7 +7,7 @@ notebook
 aiohttp
 datasets
 fastapi
-
+huggingface_hub
 
 jinja2
 

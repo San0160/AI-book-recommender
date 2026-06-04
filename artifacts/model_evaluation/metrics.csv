@@ -1,0 +1,7 @@
+{
+    "precision_at_k": 0.4289,
+    "diversity_score": 0.6147,
+    "catalog_coverage": 0.0852,
+    "k": 5,
+    "sample_size": 200
+}
