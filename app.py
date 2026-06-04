@@ -33,7 +33,13 @@ templates = Jinja2Templates(directory="templates")
 
 @app.get("/")
 def root():
-    return {"status": "API is running"}
+    from pathlib import Path
+
+    return {
+        "cwd": str(Path.cwd()),
+        "templates_exists": Path("templates").exists(),
+        "index_exists": Path("templates/index.html").exists()
+    }
 
 @app.get("/recommend")
 def recommend(
