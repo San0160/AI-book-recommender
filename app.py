@@ -31,9 +31,9 @@ app.add_middleware(
 
 templates = Jinja2Templates(directory="templates")
 
-@app.get("/", response_class=HTMLResponse)
-def root(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+@app.get("/")
+def root():
+    return {"status": "API is running"}
 
 @app.get("/recommend")
 def recommend(
