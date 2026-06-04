@@ -6,6 +6,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi.requests import Request
 from contextlib import asynccontextmanager
 from Book_recommender.pipeline.prediction import RecommenderPredictor
+from fastapi.responses import FileResponse
 
 predictor = None
 
@@ -33,13 +34,7 @@ templates = Jinja2Templates(directory="templates")
 
 @app.get("/")
 def root():
-    from pathlib import Path
-
-    return {
-        "cwd": str(Path.cwd()),
-        "templates_exists": Path("templates").exists(),
-        "index_exists": Path("templates/index.html").exists()
-    }
+    return FileResponse("templates/index.html")
 
 @app.get("/recommend")
 def recommend(
