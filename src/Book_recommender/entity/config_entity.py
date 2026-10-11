@@ -33,9 +33,8 @@ class ModelTrainerConfig:
     data_path: Path
     vectorizer_path: Path
     model_path: Path
-    n_neighbors: int
-    metric: str
-    algorithm: str
+    model_name: str
+    model_params: dict
 
 @dataclass(frozen=True)
 class ModelEvaluationConfig:

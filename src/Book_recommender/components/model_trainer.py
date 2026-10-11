@@ -7,11 +7,11 @@ class ModelTrainer:
         self.model = None
 
     def initialize_model(self):
-        self.model = NearestNeighbors(
-        n_neighbors=self.config.n_neighbors,
-        metric=self.config.metric,
-        algorithm=self.config.algorithm
-    )
+        if self.config.model_name != "knn":
+            raise NotImplementedError(
+                f"'{self.config.model_name}' is added in Step 3"
+            )
+        self.model = NearestNeighbors(**self.config.model_params)
 
     def fit_model(self, tfidf_matrix):
         self.model.fit(tfidf_matrix)

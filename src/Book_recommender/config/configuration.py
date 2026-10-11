@@ -74,6 +74,7 @@ class configurationManager:
     
     def get_model_trainer_config(self) -> ModelTrainerConfig:
         config = self.config.model_trainer
+        params = self.params.model_trainer
 
         create_directories([config.root_dir])
 
@@ -82,9 +83,8 @@ class configurationManager:
             data_path = config.data_path,
             vectorizer_path = config.vectorizer_path,
             model_path = config.model_path,
-            n_neighbors = config.n_neighbors,
-            metric = config.metric,
-            algorithm = config.algorithm
+            model_name = params.model_name,
+            model_params = dict(params[params.model_name]),
         )
         return model_trainer_config
     

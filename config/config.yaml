@@ -29,9 +29,7 @@ model_trainer:
   data_path: artifacts/data_preprocessing/processed_data.csv
   vectorizer_path: artifacts/data_transformation/tfidf.pkl
   model_path: artifacts/model_trainer/knn_model.pkl
-  n_neighbors: 10
-  metric: cosine
-  algorithm: brute
+  
 
 model_evaluation:
   root_dir:  artifacts/model_evaluation
