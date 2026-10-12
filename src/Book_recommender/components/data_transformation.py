@@ -1,36 +1,28 @@
-import os
 import joblib
 from sklearn.feature_extraction.text import TfidfVectorizer
-from Book_recommender.logging.log import logger
-import pandas as pd
 
-#Component
+from Book_recommender.logging.log import logger
+
+
 class DataTransformation:
     def __init__(self, config):
         self.config = config
         self.vectorizer = None
 
     def initialize_vectorizer(self):
-        self.vectorizer = TfidfVectorizer(
-            stop_words="english",
-            max_features=10000,
-            ngram_range=(1, 2),
-            min_df=2
-        )
+        params = dict(self.config.tfidf_params)
+        # YAML gives a list; scikit-learn wants a tuple
+        params["ngram_range"] = tuple(params["ngram_range"])
+        self.vectorizer = TfidfVectorizer(**params)
+        logger.info(f"TF-IDF params: {params}")
 
     def fit_transform(self, data):
-        return self.vectorizer.fit_transform(
-            data["combined_features"]
-        )
+        text = data["combined_features"].fillna("")
+        matrix = self.vectorizer.fit_transform(text)
+        logger.info(f"TF-IDF matrix shape: {matrix.shape}")
+        return matrix
 
-    def save(self, path):
-
-        df = pd.read_csv(self.config.data_path)
-        # save vectorizer
-        joblib.dump(self.vectorizer, path)
-        logger.info(f"Vectorizer saved to {path}")
-
-        # save tfidf matrix separately
-        tfidf_matrix = self.vectorizer.transform(df["combined_features"])
-        joblib.dump(tfidf_matrix, "artifacts/data_transformation/tfidf_matrix.pkl")
-        logger.info("TF-IDF matrix saved")
+    def save(self, tfidf_matrix):
+        joblib.dump(self.vectorizer, self.config.vectorizer_path)
+        joblib.dump(tfidf_matrix, self.config.tfidf_matrix_path)
+        logger.info("Vectorizer and TF-IDF matrix saved")

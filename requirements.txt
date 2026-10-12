@@ -8,7 +8,7 @@ aiohttp
 datasets
 fastapi
 huggingface_hub
-
+mlflow
 jinja2
 
 python-box==6.0.2

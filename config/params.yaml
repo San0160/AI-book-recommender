@@ -1,5 +1,16 @@
+data_processing:
+  feature_fields: [title, authors, description] 
+
+data_transformation:
+  max_features: null      # if null => no cap
+  ngram_range: [1, 2]
+  min_df: 2
+  max_df: 0.5              # ignore terms in more than this fraction of books
+  sublinear_tf: true      # true = log-scale term counts
+  stop_words: english      # null = keep stop words
+
 model_trainer:
-  model_name: knn            # knn | svd_knn
+  model_name: knn            # options: knn | svd_knn
 
   knn:
     n_neighbors: 6
@@ -12,3 +23,6 @@ model_trainer:
     n_neighbors: 10
     metric: cosine
     algorithm: brute
+
+
+

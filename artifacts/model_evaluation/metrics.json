@@ -1,0 +1,27 @@
+{
+    "model": "NearestNeighbors",
+    "k": 5,
+    "sample_size": 2000,
+    "coverage_ceiling": 0.8987,
+    "model_scores": {
+        "precision_at_k": 0.1482,
+        "precision_ci95": 0.0109,
+        "diversity_score": 0.669,
+        "catalog_coverage": 0.5339,
+        "queries_scored": 1791
+    },
+    "popularity_baseline": {
+        "precision_at_k": 0.0026,
+        "precision_ci95": 0.001,
+        "diversity_score": 0.7662,
+        "catalog_coverage": 0.0004,
+        "queries_scored": 1791
+    },
+    "random_baseline": {
+        "precision_at_k": 0.0294,
+        "precision_ci95": 0.0043,
+        "diversity_score": 0.9949,
+        "catalog_coverage": 0.5905,
+        "queries_scored": 1791
+    }
+}

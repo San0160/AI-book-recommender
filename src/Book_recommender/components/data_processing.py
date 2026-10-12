@@ -1,7 +1,5 @@
 import re
 import pandas as pd
-import os
-
 
 class DataProcessing:
     def __init__(self, config):
@@ -43,11 +41,14 @@ class DataProcessing:
                    inplace = True)
         
         # create combined features  
+        fields = self.config.feature_fields
+        missing = [f for f in fields if f not in data.columns]
+        if missing:
+            raise ValueError(f"feature_fields not in data: {missing}")
+
         data["combined_features"] = (
-            data["title"].fillna('') + " " +
-            data["authors"].fillna('') + " " +
-            data["genre_clean"].fillna('') + " " +
-            data["description"].fillna(''))
+            data[fields].fillna("").astype(str).agg(" ".join, axis=1)
+        )
         
         data["average_rating"] = pd.to_numeric(
             data["average_rating"],

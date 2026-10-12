@@ -20,12 +20,15 @@ class DatavalidationConfig:
 class DataProcessingConfig:
     root_dir: Path
     local_data_file: Path
+    feature_fields: list
 
 @dataclass(frozen=True)
 class DataTransformationConfig:
     root_dir: Path
     data_path: Path
     vectorizer_path: Path
+    tfidf_matrix_path: Path
+    tfidf_params: dict
 
 @dataclass(frozen=True)
 class ModelTrainerConfig:
@@ -44,3 +47,6 @@ class ModelEvaluationConfig:
     metrics_file: Path
     sample_size: int      
     n_recommendations: int 
+    tfidf_matrix_path: Path
+    mlflow_tracking_uri: str
+    mlflow_experiment_name: str

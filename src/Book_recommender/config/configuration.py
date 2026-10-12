@@ -49,25 +49,30 @@ class configurationManager:
 
     def get_data_preprocessing_config(self) -> DataProcessingConfig:
         config = self.config.data_processing
+        params = self.params.data_processing
 
         create_directories([config.root_dir])
 
         data_processing_config = DataProcessingConfig(
             root_dir = config.root_dir,
-            local_data_file = config.local_data_file
+            local_data_file = config.local_data_file,
+            feature_fields = list(params.feature_fields)
         )
 
         return data_processing_config
     
     def get_data_transformation_config(self) -> DataTransformationConfig:
         config = self.config.data_transformation
+        params = self.params.data_transformation
 
         create_directories([config.root_dir])
 
         data_transformation_config = DataTransformationConfig(
             root_dir = config.root_dir,
             data_path=config.data_path,
-            vectorizer_path= config.vectorizer_path
+            vectorizer_path= config.vectorizer_path,
+            tfidf_matrix_path = config.tfidf_matrix_path,
+            tfidf_params = dict(params),
         )
 
         return data_transformation_config
@@ -99,7 +104,10 @@ class configurationManager:
             model_path=config.model_path,
             metrics_file = config.metrics_file,
             sample_size = config.sample_size,     
-            n_recommendations =  config.n_recommendations
+            n_recommendations =  config.n_recommendations,
+            tfidf_matrix_path = config.tfidf_matrix_path,
+            mlflow_tracking_uri = config.mlflow_tracking_uri,
+            mlflow_experiment_name = config.mlflow_experiment_name,
         )
 
         return model_evaluation_config
