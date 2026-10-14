@@ -19,11 +19,15 @@ def log_run(config, metrics, params):
     """Record one pipeline run: params, metrics and artifacts."""
     active_model = params["model_trainer"]["model_name"]
 
-    # Log only the settings that actually shaped this run,
-    # not the unused model blocks.
+    # Log only the settings that actually shaped this run
+
+    method = params["data_transformation"]["method"]
     used_params = {
         "data_processing": params["data_processing"],
-        "data_transformation": params["data_transformation"],
+        "data_transformation": {
+            "method": method,
+            method: params["data_transformation"][method],
+        },
         "model_trainer": {
             "model_name": active_model,
             active_model: params["model_trainer"][active_model],

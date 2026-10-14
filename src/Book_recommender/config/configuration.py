@@ -1,5 +1,6 @@
 from Book_recommender.constant import *
 from Book_recommender.utils.common import read_yaml, create_directories
+from Book_recommender.components.data_transformation import SUPPORTED_TRANSFORMS
 from Book_recommender.entity.config_entity import (DataInjestionConfig,
                                                    DatavalidationConfig,
                                                    DataProcessingConfig,
@@ -65,14 +66,19 @@ class configurationManager:
         config = self.config.data_transformation
         params = self.params.data_transformation
 
+        method = params.method
+        if method not in SUPPORTED_TRANSFORMS:
+            raise ValueError(f"Unknown method '{method}'. Choose from {SUPPORTED_TRANSFORMS}")
+
         create_directories([config.root_dir])
 
         data_transformation_config = DataTransformationConfig(
             root_dir = config.root_dir,
             data_path=config.data_path,
             vectorizer_path= config.vectorizer_path,
-            tfidf_matrix_path = config.tfidf_matrix_path,
-            tfidf_params = dict(params),
+            feature_matrix_path = config.feature_matrix_path,
+            method = method,
+            method_params = dict(params[method]),
         )
 
         return data_transformation_config
@@ -86,7 +92,7 @@ class configurationManager:
         model_trainer_config = ModelTrainerConfig(
             root_dir = config.root_dir,
             data_path = config.data_path,
-            vectorizer_path = config.vectorizer_path,
+            feature_matrix_path = config.feature_matrix_path,
             model_path = config.model_path,
             model_name = params.model_name,
             model_params = dict(params[params.model_name]),
@@ -105,7 +111,7 @@ class configurationManager:
             metrics_file = config.metrics_file,
             sample_size = config.sample_size,     
             n_recommendations =  config.n_recommendations,
-            tfidf_matrix_path = config.tfidf_matrix_path,
+            feature_matrix_path = config.feature_matrix_path,
             mlflow_tracking_uri = config.mlflow_tracking_uri,
             mlflow_experiment_name = config.mlflow_experiment_name,
         )

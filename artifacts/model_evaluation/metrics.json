@@ -4,23 +4,23 @@
     "sample_size": 2000,
     "coverage_ceiling": 0.8987,
     "model_scores": {
-        "precision_at_k": 0.1482,
+        "precision_at_k": 0.149,
         "precision_ci95": 0.0109,
-        "diversity_score": 0.669,
-        "catalog_coverage": 0.5339,
+        "diversity_score": 0.6709,
+        "catalog_coverage": 0.5329,
         "queries_scored": 1791
     },
     "popularity_baseline": {
         "precision_at_k": 0.0026,
         "precision_ci95": 0.001,
-        "diversity_score": 0.7662,
+        "diversity_score": 0.7831,
         "catalog_coverage": 0.0004,
         "queries_scored": 1791
     },
     "random_baseline": {
         "precision_at_k": 0.0294,
         "precision_ci95": 0.0043,
-        "diversity_score": 0.9949,
+        "diversity_score": 0.9948,
         "catalog_coverage": 0.5905,
         "queries_scored": 1791
     }

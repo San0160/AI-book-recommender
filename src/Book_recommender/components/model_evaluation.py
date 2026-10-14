@@ -14,7 +14,7 @@ class ModelEvaluation:
 
     def load_artifacts(self):
         self.model = joblib.load(self.config.model_path)
-        self.tfidf_matrix = joblib.load(self.config.tfidf_matrix_path)
+        self.features = joblib.load(self.config.feature_matrix_path)
         self.data = pd.read_csv(self.config.data_path).reset_index(drop=True)
 
         self.genres = (
@@ -32,7 +32,7 @@ class ModelEvaluation:
 
     # ---- three recommenders, same signature: (query_idx, k) -> array of indices
     def _model_recs(self, idx, k):
-        _, ind = self.model.kneighbors(self.tfidf_matrix[idx], n_neighbors=k + 1)
+        _, ind = self.model.kneighbors(self.features[[idx]], n_neighbors=k + 1)
         ind = ind.ravel()
         return ind[ind != idx][:k]
 
@@ -48,7 +48,7 @@ class ModelEvaluation:
         k = len(recs)
         if k < 2:
             return None
-        sim = cosine_similarity(self.tfidf_matrix[recs])
+        sim = cosine_similarity(self.features[recs])
         np.fill_diagonal(sim, 0)
         return 1 - sim.sum() / (k * (k - 1))
 

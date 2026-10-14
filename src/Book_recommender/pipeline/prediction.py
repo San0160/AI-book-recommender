@@ -16,7 +16,7 @@ class RecommenderPredictor:
         eval_cfg = cfg.get_model_evaluation_config()
 
         self.model = joblib.load(trainer_cfg.model_path)
-        self.tfidf_matrix = joblib.load(eval_cfg.tfidf_matrix_path)
+        self.features = joblib.load(eval_cfg.feature_matrix_path)
         self.data = pd.read_csv(trainer_cfg.data_path).reset_index(drop=True)
 
         # Bayesian score computed once, not on every request
@@ -83,7 +83,7 @@ class RecommenderPredictor:
 
         n_candidates = min(len(self.data), n * self.OVERSAMPLE + 1)
         _, indices = self.model.kneighbors(
-            self.tfidf_matrix[seed], n_neighbors=n_candidates
+            self.features[[seed]], n_neighbors=n_candidates
         )
 
         picked, seen_titles = [], {seed_title}

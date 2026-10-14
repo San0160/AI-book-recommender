@@ -15,7 +15,6 @@ class DataTransformationTrainingPipeline:
         data = pd.read_csv(transformation_config.data_path)
 
         transformation = DataTransformation(config=transformation_config)
-        transformation.initialize_vectorizer()
         matrix = transformation.fit_transform(data)
         transformation.save(matrix)
 

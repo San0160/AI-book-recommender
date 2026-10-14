@@ -1,4 +1,3 @@
-import pandas as pd
 import joblib
 
 from Book_recommender.config.configuration import configurationManager
@@ -13,19 +12,11 @@ class ModelTrainerTrainingPipeline:
         config = configurationManager()
         model_trainer_config = config.get_model_trainer_config()
 
-        # Load processed data
-        data = pd.read_csv(model_trainer_config.data_path)
+        features = joblib.load(model_trainer_config.feature_matrix_path)
 
-        # Load saved TF-IDF vectorizer
-        vectorizer = joblib.load(model_trainer_config.vectorizer_path)
-
-        # Create TF-IDF matrix
-        tfidf_matrix = vectorizer.transform(data["combined_features"])
-
-        # Build, fit and save the model selected in params.yaml
         trainer = ModelTrainer(config=model_trainer_config)
         trainer.initialize_model()
-        trainer.fit_model(tfidf_matrix)
+        trainer.fit_model(features)
         trainer.save()
 
 

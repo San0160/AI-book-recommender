@@ -27,14 +27,15 @@ class DataTransformationConfig:
     root_dir: Path
     data_path: Path
     vectorizer_path: Path
-    tfidf_matrix_path: Path
-    tfidf_params: dict
+    feature_matrix_path: Path
+    method: str
+    method_params: dict
 
 @dataclass(frozen=True)
 class ModelTrainerConfig:
     root_dir: Path
     data_path: Path
-    vectorizer_path: Path
+    feature_matrix_path: Path
     model_path: Path
     model_name: str
     model_params: dict
@@ -47,6 +48,6 @@ class ModelEvaluationConfig:
     metrics_file: Path
     sample_size: int      
     n_recommendations: int 
-    tfidf_matrix_path: Path
+    feature_matrix_path: Path
     mlflow_tracking_uri: str
     mlflow_experiment_name: str
