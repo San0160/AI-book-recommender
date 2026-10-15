@@ -18,6 +18,10 @@ RUN python main.py && python scripts/check_quality.py
 
 # ---------- Stage 2: slim serving image ----------
 FROM python:${PYTHON_VERSION}-slim AS runtime
+RUN apt-get update \
+    && apt-get upgrade -y --no-install-recommends \
+    && rm -rf /var/lib/apt/lists/* \
+    && pip install --no-cache-dir --upgrade pip setuptools wheel
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PYTHONPATH=/app/src \
     LOG_TO_FILE=0 PORT=8080
 WORKDIR /app
