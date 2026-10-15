@@ -178,20 +178,6 @@ def list_genres(request: Request, _: RecommenderPredictor = Depends(get_predicto
     genres = request.app.state.genres
     return {"genres": genres, "count": len(genres)}
 
-
-app.include_router(api, prefix="/v1")                     # the supported API
-app.include_router(api, include_in_schema=False)          # legacy paths, so index.html keeps working
-
-
-if __name__ == "__main__":
-    import uvicorn
-
-    uvicorn.run(
-        "app:app",
-        host=os.environ.get("HOST", "0.0.0.0"),
-        port=int(os.environ.get("PORT", 8080)),
-    )
-
 @api.get("/popular", response_model=TopResponse)
 def popular(
     response: Response,
@@ -214,3 +200,17 @@ def model_info(request: Request, predictor: RecommenderPredictor = Depends(get_p
     except (OSError, ValueError):
         info["evaluation"] = None   # the page handles this
     return info
+
+
+app.include_router(api, prefix="/v1")                     # the supported API
+app.include_router(api, include_in_schema=False)          # legacy paths, so index.html keeps working
+
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run(
+        "app:app",
+        host=os.environ.get("HOST", "0.0.0.0"),
+        port=int(os.environ.get("PORT", 8080)),
+    )
+
