@@ -1,3 +1,5 @@
+from pathlib import Path
+from box import ConfigBox
 from Book_recommender.constant import *
 from Book_recommender.utils.common import read_yaml, create_directories
 from Book_recommender.components.data_transformation import SUPPORTED_TRANSFORMS
@@ -8,7 +10,24 @@ from Book_recommender.entity.config_entity import (DataInjestionConfig,
                                                    ModelTrainerConfig,
                                                    ModelEvaluationConfig)
 
-# 4 Update configuration manager
+###---- Bug free project root system
+_PATH_KEY_SUFFIXES = ("_dir", "_path", "_file", "_root")
+
+
+def _anchor(node, key=""):
+    """Resolve every relative path in config.yaml against PROJECT_ROOT."""
+    if isinstance(node, dict):
+        return {k: _anchor(v, k) for k, v in node.items()}
+    if isinstance(node, str):
+        if key.lower().endswith(_PATH_KEY_SUFFIXES):
+            p = Path(node)
+            return str(p if p.is_absolute() else PROJECT_ROOT / p)
+        if key == "mlflow_tracking_uri" and node.startswith("sqlite:///"):
+            db = Path(node[len("sqlite:///"):])
+            db = db if db.is_absolute() else PROJECT_ROOT / db
+            return f"sqlite:///{db.as_posix()}"
+    return node
+###-----
 
 class configurationManager:
     def __init__(
@@ -16,7 +35,7 @@ class configurationManager:
         config_filepath = CONFIG_FILE_PATH,     # Access to constants
         params_filepath = PARAMS_FILE_PATH):
 
-        self.config = read_yaml(config_filepath) # read all config and params yaml files
+        self.config = ConfigBox(_anchor(read_yaml(config_filepath)))
         self.params = read_yaml(params_filepath)
 
         create_directories([self.config.artifacts_root])
@@ -57,7 +76,8 @@ class configurationManager:
         data_processing_config = DataProcessingConfig(
             root_dir = config.root_dir,
             local_data_file = config.local_data_file,
-            feature_fields = list(params.feature_fields)
+            feature_fields = list(params.feature_fields),
+            data_path = config.data_path,
         )
 
         return data_processing_config

@@ -1,18 +1,9 @@
-scikit-learn
-pandas
 numpy
+pandas
+scikit-learn
+joblib
 PyYAML
-streamlit
-notebook
-aiohttp
-datasets
-fastapi
-huggingface_hub
-mlflow
-jinja2
-
 python-box==6.0.2
-
-sentence-transformers
-
--e . 
+ensure
+fastapi
+uvicorn

@@ -18,7 +18,8 @@ setuptools.setup(
     author_email = AUTHOR_EMAIL,
     description = "A small python package for recommending books",
     long_description = long_description,
-    long_description_content = "text/markdown",
+    long_description_content_type = "text/markdown",
+    python_requires = ">=3.10",
     url = f"https://github.com/{AUTHOR_USER_NAME}/{REPO_NAME}",
     project_urls = {
         "Summariser": f"https://github.com/{AUTHOR_USER_NAME}/{REPO_NAME}/issues",

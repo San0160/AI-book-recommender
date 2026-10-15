@@ -32,5 +32,9 @@ model_trainer:
     metric: cosine
     algorithm: brute
 
+quality_gate:
+  min_precision_at_k: 0.12      # your current model scores about 0.149
+  min_lift_over_random: 3.0     # currently about 5x
+
 
 

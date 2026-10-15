@@ -1,5 +1,4 @@
 import joblib
-import numpy as np
 import pandas as pd
 
 from Book_recommender.config.configuration import configurationManager
@@ -18,6 +17,9 @@ class RecommenderPredictor:
         self.model = joblib.load(trainer_cfg.model_path)
         self.features = joblib.load(eval_cfg.feature_matrix_path)
         self.data = pd.read_csv(trainer_cfg.data_path).reset_index(drop=True)
+        self.data["_norm_title"] = (
+            self.data["title"].astype(str).str.lower().str.split().str.join(" ")
+        )
 
         # Bayesian score computed once, not on every request
         C = self.data["average_rating"].mean()
@@ -76,8 +78,11 @@ class RecommenderPredictor:
                                      language=language, n=n)
 
         seed = self._find_seed(book_title, author)
-        seed_title = str(self.data.loc[seed, "title"]).lower()
-        logger.info(f"Seed book: {self.data.loc[seed, 'title']}")
+        seed_title = self.data.at[seed, "_norm_title"]
+        logger.info(
+            f"Seed book: {self.data.at[seed, 'title']} "
+            f"(language={self.data.at[seed, 'language_code']})"
+        )
 
         mask = self._filter_mask(language, min_rating, genre)
 
@@ -88,7 +93,7 @@ class RecommenderPredictor:
 
         picked, seen_titles = [], {seed_title}
         for i in indices.ravel():
-            title = str(self.data.at[i, "title"]).lower()
+            title = self.data.at[i, "_norm_title"]
             if i == seed or not mask[i] or title in seen_titles:
                 continue  # skip self, filtered-out books, duplicate editions
             seen_titles.add(title)
@@ -104,3 +109,16 @@ class RecommenderPredictor:
             raise ValueError(f"No books found for genre: {genre}")
         top = self.data[mask].nlargest(n, "score")
         return self._format(top.index)
+
+    def popular_random(self, n=15, pool=500, language="eng"):
+        """n random books drawn from the best-rated `pool` books (changes every call)."""
+        mask = self._filter_mask(language=language)
+        candidates = self.data[mask].nlargest(pool, "score")
+        picks = candidates.sample(min(n, len(candidates)))
+        return self._format(picks.index)
+
+    def model_info(self):
+        return {
+            "algorithm": type(self.model).__name__,
+            "books": len(self.data),
+        }

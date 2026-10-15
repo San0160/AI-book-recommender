@@ -1,6 +1,5 @@
 import os
 import urllib.request as request
-import zipfile
 from Book_recommender.logging.log import logger
 from Book_recommender.utils.common import get_size
 from Book_recommender.entity.config_entity import DataInjestionConfig

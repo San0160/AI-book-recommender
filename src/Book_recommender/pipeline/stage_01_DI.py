@@ -1,6 +1,5 @@
 from Book_recommender.config.configuration import configurationManager
 from Book_recommender.components.data_injection import DataInjection
-from Book_recommender.logging.log import logger
 
 class DataInjectionTrainingPipeline:
     def __init__ (self):

@@ -224,3 +224,14 @@ models/
 
 mlflow.db
 mlruns/
+
+artifacts/
+logs/
+mlruns/
+mlflow.db
+__pycache__/
+*.egg-info/
+.venv/
+.env
+research/*.csv
+research/models/

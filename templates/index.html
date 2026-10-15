@@ -1,75 +1,536 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
 <head>
-    <title>Book Recommender</title>
-    <style>
-        body { font-family: sans-serif; max-width: 900px; margin: 40px auto; padding: 0 20px; }
-        input { padding: 8px; margin: 5px; border: 1px solid #ddd; border-radius: 4px; }
-        button { padding: 8px 20px; background: #4a90e2; color: white; border: none; border-radius: 4px; cursor: pointer; }
-        .books { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 20px; }
-        .book { width: 130px; text-align: center; }
-        .book img { width: 100px; height: 150px; object-fit: cover; border-radius: 4px; border: 1px solid #ddd; }
-        .book p { font-size: 11px; margin: 4px 0; }
-        .error { color: red; margin-top: 10px; }
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0a0c11">
+<title>Book Recommender</title>
+<style>
+:root {
+  --bg: #0a0c11;
+  --surface: #131722;
+  --surface-2: #1b2130;
+  --border: #272e3f;
+  --text: #e9ecf3;
+  --muted: #98a1b3;
+  --accent: #f2b441;
+  --accent-ink: #1a1204;
+  --danger: #ff8a8a;
+  --radius: 14px;
+  /* Drop your background image at static/bg.jpg (or change this line) */
+  --bg-image: url("/static/bg.png");
+}
+* { box-sizing: border-box; }
+html { color-scheme: dark; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  min-height: 100vh;
+}
+h1, h2, h3 { font-family: Georgia, "Times New Roman", serif; line-height: 1.2; margin: 0; }
+a { color: var(--accent); }
+.muted { color: var(--muted); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+[hidden] { display: none !important; }
+
+/* ---------- backdrop ---------- */
+.backdrop {
+  position: absolute; inset: 0 0 auto 0; height: 560px; z-index: -1;
+  background:
+    linear-gradient(180deg, rgba(10,12,17,.45) 0%, rgba(10,12,17,.8) 60%, var(--bg) 100%),
+    var(--bg-image) center / cover no-repeat,
+    radial-gradient(900px 400px at 20% 0%, #26304a 0%, transparent 70%);
+}
+
+/* ---------- header ---------- */
+.topbar {
+  position: sticky; top: 0; z-index: 10;
+  background: rgba(10,12,17,.72);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border);
+}
+.topbar-inner {
+  max-width: 1240px; margin: 0 auto; padding: 10px 20px;
+  display: flex; align-items: center; gap: 24px;
+}
+.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text); }
+.brand img { height: 34px; width: auto; display: block; }
+.brand span { font-family: Georgia, serif; font-size: 1.15rem; font-weight: 700; }
+nav { display: flex; gap: 4px; }
+nav a {
+  color: var(--muted); text-decoration: none; padding: 8px 14px; border-radius: 999px;
+  font-weight: 600; font-size: .95rem;
+}
+nav a:hover { color: var(--text); background: var(--surface); }
+nav a[aria-current="page"] { color: var(--accent-ink); background: var(--accent); }
+
+/* ---------- layout ---------- */
+main { max-width: 1240px; margin: 0 auto; padding: 0 20px 64px; }
+.hero { padding: 64px 0 28px; max-width: 720px; }
+.hero h1 { font-size: clamp(2rem, 5vw, 3.2rem); }
+.hero p { color: var(--muted); font-size: 1.1rem; margin: 12px 0 0; }
+
+/* ---------- search form ---------- */
+.search {
+  display: grid; gap: 14px; align-items: end;
+  grid-template-columns: 2fr 1.4fr 1.2fr .8fr .7fr auto;
+  background: rgba(19,23,34,.88);
+  border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 18px;
+  backdrop-filter: blur(6px);
+}
+.field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.field span { font-size: .8rem; color: var(--muted); font-weight: 600; letter-spacing: .02em; }
+input {
+  width: 100%; background: var(--bg); color: var(--text);
+  border: 1px solid var(--border); border-radius: 10px;
+  padding: 11px 12px; font: inherit;
+}
+input::placeholder { color: #626b7d; }
+input:hover { border-color: #3a4358; }
+input:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 0 3px rgba(242,180,65,.2); }
+.btn {
+  background: var(--accent); color: var(--accent-ink); border: 0; border-radius: 10px;
+  padding: 12px 22px; font: inherit; font-weight: 700; cursor: pointer;
+}
+.btn:hover { filter: brightness(1.08); }
+.btn:disabled { opacity: .6; cursor: progress; }
+.btn.ghost {
+  background: transparent; color: var(--text); border: 1px solid var(--border); padding: 8px 14px;
+  font-weight: 600; font-size: .9rem;
+}
+.btn.ghost:hover { border-color: var(--accent); color: var(--accent); filter: none; }
+.hint { margin: 10px 2px 0; font-size: .85rem; color: var(--muted); min-height: 1.3em; }
+.hint.error { color: var(--danger); }
+
+/* ---------- sections + grid ---------- */
+.section-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 40px 0 16px; flex-wrap: wrap; }
+.section-head h2 { font-size: 1.5rem; }
+.section-head p { margin: 4px 0 0; color: var(--muted); font-size: .92rem; }
+.grid { display: grid; gap: 18px; grid-template-columns: repeat(2, 1fr); }
+@media (min-width: 640px)  { .grid { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 1000px) { .grid { grid-template-columns: repeat(5, 1fr); } }
+
+.card {
+  all: unset; box-sizing: border-box; cursor: pointer; display: flex; flex-direction: column;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  overflow: hidden; transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease;
+}
+.card:hover { transform: translateY(-4px); border-color: #4a5570; box-shadow: 0 14px 30px rgba(0,0,0,.5); }
+.card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.cover { aspect-ratio: 2 / 3; background: var(--surface-2); position: relative; overflow: hidden; }
+.cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.cover-fallback {
+  position: absolute; inset: 0; display: grid; place-items: center; padding: 16px; text-align: center;
+  background: linear-gradient(160deg, hsl(var(--h) 45% 26%), hsl(calc(var(--h) + 40) 50% 14%));
+  font-family: Georgia, serif; font-weight: 700; color: rgba(255,255,255,.88); font-size: 1rem;
+}
+.card-body { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 3px; }
+.card-title {
+  font-weight: 700; font-size: .95rem; line-height: 1.3;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.card-author { color: var(--muted); font-size: .85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.card-meta { display: flex; gap: 8px; align-items: center; margin-top: 6px; font-size: .8rem; }
+.rating { color: var(--accent); font-weight: 700; }
+.genre {
+  color: var(--muted); border: 1px solid var(--border); border-radius: 999px; padding: 1px 8px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0;
+}
+
+.skeleton { border-radius: var(--radius); aspect-ratio: 2 / 3.6; background: linear-gradient(100deg, var(--surface) 30%, var(--surface-2) 50%, var(--surface) 70%); background-size: 200% 100%; animation: shimmer 1.4s infinite linear; }
+@keyframes shimmer { to { background-position: -200% 0; } }
+.state {
+  grid-column: 1 / -1; text-align: center; padding: 36px 16px; color: var(--muted);
+  border: 1px dashed var(--border); border-radius: var(--radius);
+}
+.state.error { color: var(--danger); }
+.state .btn { margin-top: 12px; }
+
+/* ---------- model page ---------- */
+.page-title { padding: 56px 0 8px; }
+.page-title h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); }
+.panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 22px; }
+.facts { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); margin: 20px 0; }
+.fact { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 18px; }
+.fact small { color: var(--muted); display: block; font-weight: 600; font-size: .78rem; text-transform: uppercase; letter-spacing: .06em; }
+.fact strong { font-size: 1.1rem; display: block; margin-top: 4px; }
+.bars { display: grid; gap: 14px; margin-top: 16px; }
+.bar-row { display: grid; grid-template-columns: 150px 1fr 64px; gap: 12px; align-items: center; font-size: .92rem; }
+.bar { height: 12px; background: var(--surface-2); border-radius: 999px; overflow: hidden; }
+.bar span { display: block; height: 100%; background: #566079; border-radius: 999px; }
+.bar-row.us .bar span { background: var(--accent); }
+.bar-row b { text-align: right; font-variant-numeric: tabular-nums; }
+.steps { margin: 12px 0 0; padding-left: 20px; color: var(--muted); }
+.steps li { margin: 8px 0; }
+.steps strong { color: var(--text); }
+.two { display: grid; gap: 18px; grid-template-columns: 1fr; }
+@media (min-width: 860px) { .two { grid-template-columns: 1fr 1fr; } }
+.panel h3 { font-size: 1.15rem; margin-bottom: 4px; }
+.panel p { color: var(--muted); margin: 8px 0 0; }
+
+footer { max-width: 1240px; margin: 0 auto; padding: 24px 20px 40px; color: var(--muted); font-size: .85rem; border-top: 1px solid var(--border); }
+
+@media (max-width: 960px) {
+  .search { grid-template-columns: 1fr 1fr; }
+  .search .field.wide { grid-column: 1 / -1; }
+  .search .btn { grid-column: 1 / -1; }
+  .bar-row { grid-template-columns: 110px 1fr 56px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton { animation: none; }
+  .card { transition: none; }
+  .card:hover { transform: none; }
+}
+</style>
 </head>
 <body>
-    <h2>📚 Book Recommender</h2>
-    <div>
-        <input id="title"  placeholder="Book title"       style="width:200px"/>
-        <input id="author" placeholder="Author (optional)" style="width:150px"/>
-        <input id="genre"  placeholder="Genre (optional)"  style="width:130px"/>
-        <input id="rating" placeholder="Min rating" type="number" step="0.1" min="0" max="5" style="width:90px"/>
-        <input id="n"      placeholder="Count" type="number" value="5" style="width:60px"/>
-        <button onclick="search()">Search</button>
+<div class="backdrop" aria-hidden="true"></div>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="#/">
+      <img src="/static/logo.png" alt="" onerror="this.style.display='none'">
+      <span>Book Recommender</span>
+    </a>
+    <nav aria-label="Main">
+      <a href="#/" id="nav-explore">Explore Books</a>
+      <a href="#/model" id="nav-model">Model</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ================= Explore ================= -->
+<main id="view-explore">
+  <section class="hero">
+    <h1>Find your next read</h1>
+    <p>Tell us a book you loved, an author, or a genre. We'll find books that read like it.</p>
+  </section>
+
+  <form class="search" id="search-form" novalidate>
+    <label class="field wide"><span>Book title</span>
+      <input name="title" maxlength="200" placeholder="e.g. Pride and Prejudice" autocomplete="off"></label>
+    <label class="field wide"><span>Author</span>
+      <input name="author" maxlength="200" placeholder="e.g. Jane Austen" autocomplete="off"></label>
+    <label class="field"><span>Genre</span>
+      <input name="genre" maxlength="100" list="genre-list" placeholder="e.g. Romance" autocomplete="off"></label>
+    <label class="field"><span>Min rating</span>
+      <input name="min_rating" type="number" min="0" max="5" step="0.1" inputmode="decimal" placeholder="0 – 5"></label>
+    <label class="field"><span>Count</span>
+      <input name="n" type="number" min="1" max="20" step="1" value="5" inputmode="numeric"></label>
+    <button class="btn" type="submit" id="search-btn">Search</button>
+  </form>
+  <datalist id="genre-list"></datalist>
+  <p class="hint" id="form-hint" role="status" aria-live="polite">
+    Genre on its own shows the top-rated books in that genre.
+  </p>
+
+  <section id="results" hidden aria-labelledby="results-title">
+    <div class="section-head">
+      <div>
+        <h2 id="results-title"></h2>
+        <p id="results-sub"></p>
+      </div>
+      <button class="btn ghost" type="button" id="clear-btn">Clear results</button>
     </div>
-    <div id="error" class="error"></div>
-    <div id="results" class="books"></div>
+    <div class="grid" id="results-grid"></div>
+  </section>
 
-    <script>
-        async function search() {
-            const title  = document.getElementById("title").value;
-            const author = document.getElementById("author").value;
-            const genre  = document.getElementById("genre").value;
-            const rating = document.getElementById("rating").value || 0;
-            const n      = document.getElementById("n").value || 5;
+  <section aria-labelledby="popular-title">
+    <div class="section-head">
+      <div>
+        <h2 id="popular-title">Popular picks</h2>
+        <p>A fresh selection of well-loved books every visit. Click one to find similar books.</p>
+      </div>
+      <button class="btn ghost" type="button" id="shuffle-btn">Shuffle</button>
+    </div>
+    <div class="grid" id="popular"></div>
+  </section>
+</main>
 
-            document.getElementById("error").innerText = "";
-            document.getElementById("results").innerHTML = "Loading...";
+<!-- ================= Model ================= -->
+<main id="view-model" hidden>
+  <section class="page-title">
+    <h1>How recommendations work</h1>
+    <p class="muted">The model currently running behind this site, and how well it performs.</p>
+  </section>
+  <div id="model-content"></div>
+</main>
 
-            const params = new URLSearchParams();
-            if (title)  params.append("title", title);
-            if (author) params.append("author", author);
-            if (genre)  params.append("genre", genre);
-            if (rating) params.append("min_rating", rating);
-            params.append("n", n);
+<footer>Book covers from <a href="https://openlibrary.org" rel="noopener noreferrer">Open Library</a>. Not every book has one.</footer>
 
-            try {
-                const res  = await fetch(`/recommend?${params}`);
-                const data = await res.json();
+<script>
+"use strict";
 
-                if (!res.ok) {
-                    document.getElementById("error").innerText = data.detail;
-                    document.getElementById("results").innerHTML = "";
-                    return;
-                }
+/* ---------- tiny helpers ---------- */
+const $ = (sel, root = document) => root.querySelector(sel);
 
-                document.getElementById("results").innerHTML = data.recommendations.map(book => `
-                    <div class="book">
-                        <img src="${book.cover_url}"
-                             onerror="this.src='https://via.placeholder.com/100x150?text=No+Cover'"/>
-                        <p><b>${book.title.substring(0, 40)}</b></p>
-                        <p style="color:gray">${book.authors.substring(0, 30)}</p>
-                        <p>⭐ ${book.average_rating}</p>
-                        <p style="color:#888">${book.genre}</p>
-                    </div>
-                `).join("");
+// Build DOM without innerHTML: dataset text is always inserted as text, never parsed as HTML.
+function h(tag, attrs = {}, ...kids) {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (v === false || v == null) continue;
+    if (k === "class") el.className = v;
+    else if (k.startsWith("on")) el.addEventListener(k.slice(2), v);
+    else el.setAttribute(k, v);
+  }
+  for (const kid of kids.flat()) {
+    if (kid == null || kid === false) continue;
+    el.append(kid);   // strings become text nodes
+  }
+  return el;
+}
 
-            } catch(e) {
-                document.getElementById("error").innerText = "Something went wrong";
-                document.getElementById("results").innerHTML = "";
-            }
-        }
-    </script>
+/* ---------- API ---------- */
+class ApiError extends Error {
+  constructor(status, message) { super(message); this.status = status; }
+}
+
+async function api(path, params = {}, { noStore = false } = {}) {
+  const qs = new URLSearchParams();
+  for (const [k, v] of Object.entries(params)) if (v !== "" && v != null) qs.set(k, v);
+  let res;
+  try {
+    res = await fetch(`/v1/${path}?${qs}`, {
+      headers: { Accept: "application/json" },
+      cache: noStore ? "no-store" : "default",
+    });
+  } catch {
+    throw new ApiError(0, "Can't reach the server. Check your connection and try again.");
+  }
+  if (res.ok) return res.json();
+
+  let detail = "";
+  try { detail = (await res.json()).detail; } catch { /* body wasn't JSON */ }
+  if (res.status === 404) throw new ApiError(404, typeof detail === "string" && detail ? detail : "Nothing found.");
+  if (res.status === 422) throw new ApiError(422, "Some search values aren't valid. Check them and try again.");
+  if (res.status === 503) throw new ApiError(503, "The recommender is still starting up. Try again in a few seconds.");
+  throw new ApiError(res.status, "Something went wrong on our side. Please try again.");
+}
+
+/* ---------- book cards ---------- */
+const hue = (s) => { let x = 0; for (const c of s) x = (x * 31 + c.charCodeAt(0)) >>> 0; return x % 360; };
+
+function coverBox(book) {
+  const box = h("div", { class: "cover" });
+  const fallback = () => box.replaceChildren(
+    h("div", { class: "cover-fallback", style: `--h:${hue(book.title)}` }, h("span", {}, book.title))
+  );
+  if (!book.cover_url) { fallback(); return box; }
+  // default=false makes Open Library return a 404 for missing covers instead of a blank 1x1 image,
+  // so the error handler can swap in the generated placeholder.
+  const url = book.cover_url + (book.cover_url.includes("?") ? "&" : "?") + "default=false";
+  const img = h("img", { src: url, alt: "", loading: "lazy", decoding: "async", referrerpolicy: "no-referrer" });
+  img.addEventListener("error", fallback);
+  box.append(img);
+  return box;
+}
+
+function bookCard(book) {
+  return h("button", {
+      class: "card", type: "button",
+      title: `Find books like ${book.title}`,
+      onclick: () => searchSimilar(book),
+    },
+    coverBox(book),
+    h("div", { class: "card-body" },
+      h("div", { class: "card-title" }, book.title),
+      h("div", { class: "card-author" }, book.authors.split("/").join(", ")),
+      h("div", { class: "card-meta" },
+        h("span", { class: "rating" }, `★ ${Number(book.average_rating).toFixed(2)}`),
+        book.genre ? h("span", { class: "genre" }, book.genre) : null)));
+}
+
+const skeletons = (n) => Array.from({ length: n }, () => h("div", { class: "skeleton" }));
+
+function stateBox(message, { error = false, retry = null } = {}) {
+  return h("div", { class: `state${error ? " error" : ""}`, role: error ? "alert" : "status" },
+    h("div", {}, message),
+    retry ? h("button", { class: "btn ghost", type: "button", onclick: retry }, "Try again") : null);
+}
+
+/* ---------- search ---------- */
+const form = $("#search-form");
+const hint = $("#form-hint");
+const DEFAULT_HINT = "Genre on its own shows the top-rated books in that genre.";
+
+function setHint(text, isError = false) {
+  hint.textContent = text;
+  hint.classList.toggle("error", isError);
+}
+
+function readForm() {
+  const fd = new FormData(form);
+  const get = (k) => (fd.get(k) || "").toString().trim();
+  return { title: get("title"), author: get("author"), genre: get("genre"), min_rating: get("min_rating"), n: get("n") || "5" };
+}
+
+async function runSearch() {
+  if (!form.reportValidity()) return;
+  const q = readForm();
+  if (!q.title && !q.author && !q.genre) {
+    setHint("Enter a book title, an author or a genre to search.", true);
+    return;
+  }
+  setHint(DEFAULT_HINT);
+
+  const results = $("#results"), grid = $("#results-grid"), btn = $("#search-btn");
+  results.hidden = false;
+  $("#results-title").textContent = q.title ? `Books like “${q.title}”`
+    : q.author ? `Books like those by ${q.author}`
+    : `Top rated in ${q.genre}`;
+  $("#results-sub").textContent = "Searching…";
+  grid.replaceChildren(...skeletons(Number(q.n) || 5));
+  btn.disabled = true;
+  results.scrollIntoView({ behavior: "smooth", block: "start" });
+
+  try {
+    // Genre-only searches use the top-rated endpoint; everything else finds similar books.
+    const data = (q.title || q.author)
+      ? await api("recommend", q)
+      : await api("top", { genre: q.genre, min_rating: q.min_rating, n: q.n });
+    const books = data.recommendations || data.top_books || [];
+    const filters = [q.genre && (q.title || q.author) ? `genre: ${q.genre}` : null,
+                     q.min_rating ? `rating ≥ ${q.min_rating}` : null].filter(Boolean);
+    $("#results-sub").textContent =
+      `${books.length} ${books.length === 1 ? "book" : "books"}` +
+      (books.length < Number(q.n) ? " matched your filters" : "") +
+      (filters.length ? ` · ${filters.join(" · ")}` : "");
+    grid.replaceChildren(...(books.length ? books.map(bookCard) : [stateBox("No books matched. Try loosening the filters.")]));
+  } catch (e) {
+    $("#results-sub").textContent = "";
+    grid.replaceChildren(stateBox(e.message, { error: true, retry: runSearch }));
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function searchSimilar(book) {
+  form.elements.title.value = book.title;
+  form.elements.author.value = "";
+  form.elements.genre.value = "";
+  runSearch();
+}
+
+form.addEventListener("submit", (e) => { e.preventDefault(); runSearch(); });
+$("#clear-btn").addEventListener("click", () => {
+  $("#results").hidden = true;
+  $("#results-grid").replaceChildren();
+  form.reset();
+  setHint(DEFAULT_HINT);
+});
+
+/* ---------- popular picks + genres ---------- */
+async function loadPopular() {
+  const grid = $("#popular");
+  grid.replaceChildren(...skeletons(15));
+  try {
+    const data = await api("popular", { n: 15 }, { noStore: true });
+    grid.replaceChildren(...data.top_books.map(bookCard));
+  } catch (e) {
+    grid.replaceChildren(stateBox(e.message, { error: true, retry: loadPopular }));
+  }
+}
+$("#shuffle-btn").addEventListener("click", loadPopular);
+
+async function loadGenres() {
+  try {
+    const data = await api("genres");
+    $("#genre-list").replaceChildren(...data.genres.map((g) => h("option", { value: g })));
+  } catch { /* autocomplete is optional */ }
+}
+
+/* ---------- model page ---------- */
+const ALGORITHMS = {
+  NearestNeighbors: "Nearest-neighbour search (cosine)",
+  SvdNeighbors: "Latent semantic analysis + nearest neighbours",
+};
+const FEATURES = {
+  tfidf: "TF-IDF keyword features",
+  embeddings: "Sentence embeddings (MiniLM)",
+};
+const pct = (v) => `${(v * 100).toFixed(1)}%`;
+
+function fact(label, value) {
+  return h("div", { class: "fact" }, h("small", {}, label), h("strong", {}, value));
+}
+
+function renderEvaluation(ev) {
+  const rows = [
+    ["This model", ev.model_scores.precision_at_k, true],
+    ["Popularity", ev.popularity_baseline.precision_at_k, false],
+    ["Random", ev.random_baseline.precision_at_k, false],
+  ];
+  const max = Math.max(...rows.map((r) => r[1]), 0.0001);
+  const lift = ev.random_baseline.precision_at_k > 0
+    ? (ev.model_scores.precision_at_k / ev.random_baseline.precision_at_k).toFixed(1) : null;
+
+  return h("div", { class: "panel" },
+    h("h3", {}, `Genre agreement in the top ${ev.k} results`),
+    h("p", {}, lift
+      ? `Measured on ${ev.sample_size.toLocaleString()} books. The model is about ${lift}× better than random guessing.`
+      : `Measured on ${ev.sample_size.toLocaleString()} books.`),
+    h("div", { class: "bars" }, rows.map(([label, value, us]) =>
+      h("div", { class: `bar-row${us ? " us" : ""}` },
+        h("span", {}, label),
+        h("div", { class: "bar" }, h("span", { style: `width:${Math.max(1, (value / max) * 100).toFixed(1)}%` })),
+        h("b", {}, pct(value))))),
+    h("p", {}, "How to read this: a recommendation counts as a hit when it carries the same genre label as the book you searched for. " +
+      "Genre is hidden from the model, so it has to work that out from titles, authors and descriptions. " +
+      "Genre labels are single, machine-assigned tags, so good recommendations in a neighbouring genre count as misses. " +
+      "The absolute number understates quality; use it to compare against the baselines."));
+}
+
+function renderModel(m) {
+  return h("div", {},
+    h("div", { class: "facts" },
+      fact("Algorithm", ALGORITHMS[m.algorithm] || m.algorithm),
+      fact("Features", FEATURES[m.feature_method] || m.feature_method),
+      fact("Books in catalogue", m.books.toLocaleString())),
+    h("div", { class: "two" },
+      h("div", { class: "panel" },
+        h("h3", {}, "How it works"),
+        h("ol", { class: "steps" },
+          h("li", {}, h("strong", {}, "Describe. "), "Text from each book's title, authors and description is turned into numbers."),
+          h("li", {}, h("strong", {}, "Compare. "), "Books whose numbers point the same way are treated as similar."),
+          h("li", {}, h("strong", {}, "Filter. "), "Your rating, genre and language filters apply to the results, so you always get what you asked for."))),
+      m.evaluation
+        ? renderEvaluation(m.evaluation)
+        : h("div", { class: "panel" }, h("h3", {}, "Evaluation"), h("p", {}, "Evaluation results aren't available for this build."))));
+}
+
+let modelLoaded = false;
+async function loadModel() {
+  const root = $("#model-content");
+  root.replaceChildren(h("p", { class: "muted" }, "Loading…"));
+  try {
+    root.replaceChildren(renderModel(await api("model")));
+    modelLoaded = true;
+  } catch (e) {
+    root.replaceChildren(stateBox(e.message, { error: true, retry: loadModel }));
+  }
+}
+
+/* ---------- routing (hash-based, no framework) ---------- */
+function route() {
+  const page = location.hash === "#/model" ? "model" : "explore";
+  $("#view-explore").hidden = page !== "explore";
+  $("#view-model").hidden = page !== "model";
+  for (const id of ["explore", "model"]) {
+    const a = $(`#nav-${id}`);
+    if (id === page) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
+  }
+  document.title = page === "model" ? "Model · Book Recommender" : "Book Recommender";
+  if (page === "model" && !modelLoaded) loadModel();
+  window.scrollTo(0, 0);
+}
+window.addEventListener("hashchange", route);
+
+route();
+loadPopular();
+loadGenres();
+</script>
 </body>
 </html>

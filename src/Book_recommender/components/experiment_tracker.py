@@ -1,5 +1,5 @@
 import mlflow
-
+from Book_recommender.constant import PARAMS_FILE_PATH
 from Book_recommender.logging.log import logger
 
 
@@ -52,7 +52,10 @@ def log_run(config, metrics, params):
         })
 
         mlflow.set_tag("model_class", metrics["model"])
-        mlflow.log_artifact(str(config.metrics_file))
-        mlflow.log_artifact("params.yaml")
+        for path in (config.metrics_file, PARAMS_FILE_PATH):
+            try:
+                mlflow.log_artifact(str(path))
+            except Exception:
+                logger.exception(f"Could not log artifact {path}")
 
     logger.info("Run logged to MLflow")

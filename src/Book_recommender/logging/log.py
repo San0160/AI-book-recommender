@@ -1,24 +1,21 @@
-# Custom log can be used in most projects
-
+import logging
 import os
 import sys
-import logging
 
-logging_str = "[%(asctime)s: %(levelname)s: %(module)s: %(message)s]"
-log_dir = "logs"
-log_filepath = os.path.join(log_dir, "running logs.log")
-os.makedirs(log_dir, exist_ok = True)
+from Book_recommender.constant import PROJECT_ROOT
 
+LOGGING_STR = "[%(asctime)s: %(levelname)s: %(module)s: %(message)s]"
 
+handlers = [logging.StreamHandler(sys.stdout)]
 
-logging.basicConfig(
-    level=logging.INFO,
-    format=logging_str,
+# Containers should log to stdout only, so the file handler is switchable
+if os.environ.get("LOG_TO_FILE", "1") == "1":
+    try:
+        log_dir = PROJECT_ROOT / "logs"
+        log_dir.mkdir(exist_ok=True)
+        handlers.append(logging.FileHandler(log_dir / "running.log"))
+    except OSError:
+        pass  # read-only filesystem: stdout is enough
 
-    handlers=[
-        logging.FileHandler(log_filepath),
-        logging.StreamHandler(sys.stdout)
-    ]
-)
-
+logging.basicConfig(level=logging.INFO, format=LOGGING_STR, handlers=handlers)
 logger = logging.getLogger("Book Recommender logger")

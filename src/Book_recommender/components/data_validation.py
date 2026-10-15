@@ -1,6 +1,5 @@
 from Book_recommender.entity.config_entity import DatavalidationConfig
 import os
-from Book_recommender.logging.log import logger
 
 class Datavalidation:
     def __init__(self, config: DatavalidationConfig):

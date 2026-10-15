@@ -2,7 +2,6 @@
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List
 
 @dataclass(frozen=True)
 class DataInjestionConfig:
@@ -21,6 +20,7 @@ class DataProcessingConfig:
     root_dir: Path
     local_data_file: Path
     feature_fields: list
+    data_path: Path
 
 @dataclass(frozen=True)
 class DataTransformationConfig:
