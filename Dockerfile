@@ -31,6 +31,8 @@ COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt \
     && mkdir -p /app/artifacts && chown -R app:app /app
 
+RUN pip uninstall -y pip setuptools wheel
+
 COPY --chown=app:app src ./src
 COPY --chown=app:app config ./config
 COPY --chown=app:app templates ./templates
