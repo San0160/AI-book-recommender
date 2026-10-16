@@ -18,7 +18,7 @@
   --danger: #ff8a8a;
   --radius: 14px;
   /* Drop your background image at static/bg.jpg (or change this line) */
-  --bg-image: url("/static/bg.png");
+  --bg-image: url("/static/bg.jpg");
 }
 * { box-sizing: border-box; }
 html { color-scheme: dark; }
@@ -170,6 +170,26 @@ input:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 0 3px 
 @media (min-width: 860px) { .two { grid-template-columns: 1fr 1fr; } }
 .panel h3 { font-size: 1.15rem; margin-bottom: 4px; }
 .panel p { color: var(--muted); margin: 8px 0 0; }
+
+.stack { display: grid; gap: 18px; }
+.lede { font-size: 1.1rem; color: var(--muted); max-width: 70ch; margin: 8px 0 0; }
+.note { font-size: .86rem; color: var(--muted); }
+.spaced { margin-top: 18px; }
+.headline { display: flex; gap: 24px; align-items: center; background: linear-gradient(135deg, #1e2434, var(--surface)); }
+.headline .big { font-family: Georgia, serif; font-size: clamp(3rem, 9vw, 4.6rem); line-height: 1; color: var(--accent); font-weight: 700; flex: none; }
+.headline h2 { font-size: 1.35rem; }
+.bar-row small { display: block; font-size: .76rem; color: var(--muted); }
+.panel ul.steps { list-style: disc; }
+details.tech summary { cursor: pointer; font-weight: 700; font-family: Georgia, serif; font-size: 1.1rem; }
+dl.tech { display: grid; grid-template-columns: max-content 1fr; gap: 10px 22px; margin: 16px 0 0; }
+dl.tech dt { color: var(--muted); }
+dl.tech dd { margin: 0; overflow-wrap: anywhere; }
+code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .85em; background: var(--bg); padding: 2px 6px; border-radius: 6px; }
+@media (max-width: 560px) {
+  .headline { flex-direction: column; align-items: flex-start; gap: 10px; }
+  dl.tech { grid-template-columns: 1fr; gap: 2px; }
+  dl.tech dd { margin-bottom: 10px; }
+}
 
 footer { max-width: 1240px; margin: 0 auto; padding: 24px 20px 40px; color: var(--muted); font-size: .85rem; border-top: 1px solid var(--border); }
 
@@ -444,61 +464,120 @@ async function loadGenres() {
 
 /* ---------- model page ---------- */
 const ALGORITHMS = {
-  NearestNeighbors: "Nearest-neighbour search (cosine)",
-  SvdNeighbors: "Latent semantic analysis + nearest neighbours",
+  NearestNeighbors: "Nearest-neighbour search",
+  SvdNeighbors: "Latent semantic search (SVD + nearest neighbours)",
 };
 const FEATURES = {
-  tfidf: "TF-IDF keyword features",
+  tfidf: "TF-IDF keyword weighting",
   embeddings: "Sentence embeddings (MiniLM)",
 };
-const pct = (v) => `${(v * 100).toFixed(1)}%`;
+const FIELD_LABELS = { title: "title", authors: "authors", description: "description", genre_clean: "genre" };
+
+const pct = (v, d = 1) => `${(v * 100).toFixed(d)}%`;
+const list = (xs) => xs.length < 2 ? xs.join("") : `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`;
+const fmtDate = (iso) => {
+  const d = new Date(iso);
+  return isNaN(d) ? "" : d.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+};
 
 function fact(label, value) {
   return h("div", { class: "fact" }, h("small", {}, label), h("strong", {}, value));
 }
 
-function renderEvaluation(ev) {
-  const rows = [
-    ["This model", ev.model_scores.precision_at_k, true],
-    ["Popularity", ev.popularity_baseline.precision_at_k, false],
-    ["Random", ev.random_baseline.precision_at_k, false],
-  ];
-  const max = Math.max(...rows.map((r) => r[1]), 0.0001);
-  const lift = ev.random_baseline.precision_at_k > 0
-    ? (ev.model_scores.precision_at_k / ev.random_baseline.precision_at_k).toFixed(1) : null;
+function renderPerformance(card) {
+  const ev = card.evaluation;
+  const s = ev.model_scores, pop = ev.popularity_baseline, rnd = ev.random_baseline;
+  const usesGenre = (card.model.feature_fields || []).includes("genre_clean");
+  const lift = rnd.precision_at_k > 0 ? s.precision_at_k / rnd.precision_at_k : null;
+  const per100 = (v) => Math.round(v * 100);
 
-  return h("div", { class: "panel" },
-    h("h3", {}, `Genre agreement in the top ${ev.k} results`),
-    h("p", {}, lift
-      ? `Measured on ${ev.sample_size.toLocaleString()} books. The model is about ${lift}× better than random guessing.`
-      : `Measured on ${ev.sample_size.toLocaleString()} books.`),
-    h("div", { class: "bars" }, rows.map(([label, value, us]) =>
+  const rows = [
+    ["This model", "Finds books with similar text", s.precision_at_k, true],
+    ["Most popular", "Same top books for everyone", pop.precision_at_k, false],
+    ["Random", "Books picked by chance", rnd.precision_at_k, false],
+  ];
+  const max = Math.max(...rows.map((r) => r[2]), 0.0001);
+
+  const headline = h("section", { class: "panel headline" },
+    lift ? h("div", { class: "big", "aria-hidden": "true" }, `${lift.toFixed(1)}×`) : null,
+    h("div", {},
+      h("h2", {}, "How well does it work?"),
+      h("p", {}, `Out of every 100 books it recommends, about ${per100(s.precision_at_k)} are in the same genre as the book you searched for. ` +
+        `Random picks manage about ${per100(rnd.precision_at_k)}` +
+        (lift ? `, so the model is roughly ${lift.toFixed(1)}× better than chance.` : "."))));
+
+  const measured = h("section", { class: "panel" },
+    h("h3", {}, "How we measured it"),
+    h("ol", { class: "steps" },
+      h("li", {}, `We took ${ev.sample_size.toLocaleString()} books at random.`),
+      h("li", {}, `For each one, the model suggested ${ev.k} similar books. ` +
+        (usesGenre
+          ? "This version also reads each book's genre, so the test is easier than it looks. Treat the score as a best case."
+          : "The model is never shown genre, so it has to work it out from the text alone.")),
+      h("li", {}, "We counted how often the suggestions shared the book's genre, and did the same for two simple alternatives.")),
+    h("div", { class: "bars" }, rows.map(([label, sub, value, us]) =>
       h("div", { class: `bar-row${us ? " us" : ""}` },
-        h("span", {}, label),
+        h("span", {}, label, h("small", {}, sub)),
         h("div", { class: "bar" }, h("span", { style: `width:${Math.max(1, (value / max) * 100).toFixed(1)}%` })),
         h("b", {}, pct(value))))),
-    h("p", {}, "How to read this: a recommendation counts as a hit when it carries the same genre label as the book you searched for. " +
-      "Genre is hidden from the model, so it has to work that out from titles, authors and descriptions. " +
-      "Genre labels are single, machine-assigned tags, so good recommendations in a neighbouring genre count as misses. " +
-      "The absolute number understates quality; use it to compare against the baselines."));
+    h("p", { class: "note" },
+      `Based on ${s.queries_scored.toLocaleString()} books that have a genre label. Margin of error: about ±${(s.precision_ci95 * 100).toFixed(1)} points.`),
+    h("p", {}, "Why the score looks modest: each book has a single genre tag, so a great suggestion from a neighbouring genre " +
+      "(say Fantasy and Young Adult) counts as a miss, and the tags themselves aren't perfect. " +
+      "Read the score as a comparison with the alternatives, not as a grade out of 100."));
+
+  const gate = card.gate || {};
+  const variety = h("section", { class: "panel" },
+    h("h3", {}, "Variety"),
+    h("p", {}, `Across ${ev.sample_size.toLocaleString()} test searches the model suggested ${pct(s.catalog_coverage, 0)} of the whole catalogue ` +
+      `(the most that many searches could reach is ${pct(ev.coverage_ceiling, 0)}). ` +
+      `Recommending the most popular books reaches ${pct(pop.catalog_coverage, 2)}, because everyone gets the same ones.`),
+    gate.min_precision_at_k != null ? h("div", {},
+      h("h3", { class: "spaced" }, "Release check"),
+      h("p", {}, `A new model only goes live if it scores at least ${pct(gate.min_precision_at_k)}` +
+        (gate.min_lift_over_random ? ` and beats random by at least ${gate.min_lift_over_random}×` : "") +
+        ". This is checked automatically on every release.")) : null);
+
+  return [headline, measured, variety];
 }
 
-function renderModel(m) {
-  return h("div", {},
+function renderModel(card) {
+  const m = card.model, ev = card.evaluation;
+  const fields = list((m.feature_fields || []).map((f) => FIELD_LABELS[f] || f));
+
+  const limits = h("section", { class: "panel" },
+    h("h3", {}, "What it doesn't do"),
+    h("ul", { class: "steps" },
+      h("li", {}, h("strong", {}, "It doesn't know you. "), "There are no accounts or reading history, so the same search always gives the same answer."),
+      h("li", {}, h("strong", {}, "It compares text, not taste. "), "Books described in similar words rank as similar, even if readers would disagree."),
+      h("li", {}, h("strong", {}, "Ratings are filters, not signals. "), "Minimum rating narrows the results and Popular picks use ratings, but similarity itself ignores them."),
+      h("li", {}, h("strong", {}, "English by default. "), "Results are limited to English-language books unless the search says otherwise.")));
+
+  const tech = [
+    ["Model", `${m.algorithm} (${m.model_name})`],
+    ["Settings", h("code", {}, JSON.stringify(m.params))],
+    ["Features", `${FEATURES[m.feature_method] || m.feature_method}, ${m.n_features.toLocaleString()} dimensions`],
+    ["Text used", fields],
+    ["Evaluation", ev ? `${ev.sample_size.toLocaleString()} test searches, top ${ev.k}` : "not available"],
+    ["Trained", fmtDate(card.trained_at)],
+    ["Build", card.runtime && card.runtime.commit ? h("code", {}, card.runtime.commit) : null],
+  ].filter(([, v]) => v);
+
+  return h("div", { class: "stack" },
+    h("p", { class: "lede" },
+      `This site uses a content-based model. It reads each book's ${fields} and suggests the books whose text is most similar to the one you pick. ` +
+      "It doesn't use reviews, accounts or reading history."),
     h("div", { class: "facts" },
-      fact("Algorithm", ALGORITHMS[m.algorithm] || m.algorithm),
+      fact("Method", ALGORITHMS[m.algorithm] || m.algorithm),
       fact("Features", FEATURES[m.feature_method] || m.feature_method),
-      fact("Books in catalogue", m.books.toLocaleString())),
-    h("div", { class: "two" },
-      h("div", { class: "panel" },
-        h("h3", {}, "How it works"),
-        h("ol", { class: "steps" },
-          h("li", {}, h("strong", {}, "Describe. "), "Text from each book's title, authors and description is turned into numbers."),
-          h("li", {}, h("strong", {}, "Compare. "), "Books whose numbers point the same way are treated as similar."),
-          h("li", {}, h("strong", {}, "Filter. "), "Your rating, genre and language filters apply to the results, so you always get what you asked for."))),
-      m.evaluation
-        ? renderEvaluation(m.evaluation)
-        : h("div", { class: "panel" }, h("h3", {}, "Evaluation"), h("p", {}, "Evaluation results aren't available for this build."))));
+      fact("Catalogue", `${card.books.toLocaleString()} books`),
+      card.trained_at ? fact("Last trained", fmtDate(card.trained_at)) : null),
+    ev ? renderPerformance(card)
+       : h("section", { class: "panel" }, h("h3", {}, "Evaluation"), h("p", {}, "Evaluation results aren't available for this build.")),
+    limits,
+    h("details", { class: "panel tech" },
+      h("summary", {}, "Technical details"),
+      h("dl", { class: "tech" }, tech.flatMap(([k, v]) => [h("dt", {}, k), h("dd", {}, v)]))));
 }
 
 let modelLoaded = false;

@@ -41,7 +41,7 @@ COPY --chown=app:app static ./static
 COPY --from=trainer --chown=app:app /app/artifacts/data_preprocessing/processed_data.csv artifacts/data_preprocessing/
 COPY --from=trainer --chown=app:app /app/artifacts/data_transformation/feature_matrix.pkl artifacts/data_transformation/
 COPY --from=trainer --chown=app:app /app/artifacts/model_trainer/model.pkl artifacts/model_trainer/
-COPY --from=trainer --chown=app:app /app/artifacts/model_evaluation/metrics.json artifacts/model_evaluation/
+COPY --from=trainer --chown=app:app /app/artifacts/model_evaluation/model_card.json artifacts/model_evaluation/
 
 USER app
 EXPOSE 8080

@@ -14,9 +14,18 @@ from pydantic import BaseModel
 from Book_recommender.constant import PROJECT_ROOT
 from Book_recommender.logging.log import logger
 from Book_recommender.pipeline.prediction import RecommenderPredictor
-from Book_recommender.config.configuration import configurationManager
 
 INDEX_HTML = PROJECT_ROOT / "templates" / "index.html"
+
+MODEL_CARD_PATH = PROJECT_ROOT / "artifacts" / "model_evaluation" / "model_card.json"
+
+
+def _load_model_card():
+    try:
+        return json.loads(MODEL_CARD_PATH.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        logger.warning("model_card.json missing or unreadable")
+        return None
 
 
 # ---------- response schemas ----------
@@ -47,6 +56,7 @@ class GenresResponse(BaseModel):
 # ---------- startup ----------
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    app.state.model_card = _load_model_card()
     app.state.predictor = None
     app.state.genres = []
     try:
@@ -191,15 +201,12 @@ def popular(
 
 @api.get("/model")
 def model_info(request: Request, predictor: RecommenderPredictor = Depends(get_predictor)):
-    cm = configurationManager()
-    info = predictor.model_info()
-    info["feature_method"] = cm.params.data_transformation.method
-    try:
-        with open(cm.get_model_evaluation_config().metrics_file) as f:
-            info["evaluation"] = json.load(f)
-    except (OSError, ValueError):
-        info["evaluation"] = None   # the page handles this
-    return info
+    card = request.app.state.model_card
+    if card is None:
+        raise HTTPException(status_code=404, detail="Model details are not available in this build.")
+    commit = (os.environ.get("RAILWAY_GIT_COMMIT_SHA") or "")[:7] or None
+    return {**card, "runtime": {"class": type(predictor.model).__name__,
+                                "books_loaded": len(predictor.data), "commit": commit}}
 
 
 app.include_router(api, prefix="/v1")                     # the supported API
