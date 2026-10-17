@@ -44,3 +44,7 @@ def test_no_arguments_raises(toy_predictor):
 def test_top_by_genre_filters_and_limits(toy_predictor):
     recs = toy_predictor.top_by_genre(genre="Romance", n=2)
     assert len(recs) == 2 and all(r["genre"] == "Romance" for r in recs)
+
+def test_english_variants_count_as_english(toy_predictor):
+    recs = toy_predictor.recommend(book_title="Dune", language="eng", n=5)
+    assert "Children of Dune" in titles(recs)

@@ -1,8 +1,19 @@
 import joblib
+import re
 import pandas as pd
 
 from Book_recommender.config.configuration import configurationManager
 from Book_recommender.logging.log import logger
+
+
+#--------- Language filter
+_ENGLISH = re.compile(r"^(eng|en)(-[a-z]+)?$")
+
+
+def _canon_lang(code) -> str:
+    """eng, en, en-US, en-GB... all count as English."""
+    c = str(code).strip().lower()
+    return "eng" if _ENGLISH.match(c) else c
 
 
 class RecommenderPredictor:
@@ -17,6 +28,7 @@ class RecommenderPredictor:
         self.model = joblib.load(trainer_cfg.model_path)
         self.features = joblib.load(eval_cfg.feature_matrix_path)
         self.data = pd.read_csv(trainer_cfg.data_path).reset_index(drop=True)
+        self.data["_lang"] = self.data["language_code"].map(_canon_lang)
         self.data["_norm_title"] = (
             self.data["title"].astype(str).str.lower().str.split().str.join(" ")
         )
@@ -33,7 +45,7 @@ class RecommenderPredictor:
     def _filter_mask(self, language=None, min_rating=0.0, genre=None):
         mask = pd.Series(True, index=self.data.index)
         if language:
-            mask &= self.data["language_code"].str.strip().eq(language)
+            mask &= self.data["_lang"].eq(_canon_lang(language))
         if min_rating:
             mask &= self.data["average_rating"] >= min_rating
         if genre:

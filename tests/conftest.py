@@ -3,14 +3,14 @@ import pytest
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.neighbors import NearestNeighbors
 
-from Book_recommender.pipeline.prediction import RecommenderPredictor
+from Book_recommender.pipeline.prediction import RecommenderPredictor, _canon_lang
 
 # title, authors, genre, rating, ratings_count, language, description
 BOOKS = [
     ("Dune", "Frank Herbert", "Science Fiction", 4.2, 5000, "eng", "desert planet spice empire prophecy sandworm"),
     ("Dune Messiah", "Frank Herbert", "Science Fiction", 3.9, 3000, "eng", "desert planet emperor prophecy spice"),
-    ("Dune  Messiah", "Frank Herbert", "Science Fiction", 3.9, 200, "eng", "desert planet emperor prophecy spice"),  # duplicate edition (double space)
-    ("Children of Dune", "Frank Herbert", "Science Fiction", 4.0, 2500, "eng", "desert planet children prophecy spice"),
+    ("Dune  Messiah", "Frank Herbert", "Science Fiction", 3.9, 200, "eng", "desert planet emperor prophecy spice"),
+    ("Children of Dune", "Frank Herbert", "Science Fiction", 4.0, 2500, "en-US", "desert planet children prophecy spice"),
     ("Foundation", "Isaac Asimov", "Science Fiction", 4.1, 4000, "eng", "galactic empire psychohistory future decline"),
     ("Neuromancer", "William Gibson", "Science Fiction", 3.9, 2000, "eng", "cyberspace hacker future corporation"),
     ("Pride and Prejudice", "Jane Austen", "Romance", 4.3, 6000, "eng", "marriage society england courtship manners"),
@@ -29,6 +29,7 @@ def toy_predictor():
         columns=["title", "authors", "genre_clean", "average_rating",
                  "ratings_count", "language_code", "description"],
     )
+    data["_lang"] = data["language_code"].map(_canon_lang)
     data["isbn13"] = [9780000000000 + i for i in range(len(data))]
     data["combined_features"] = (
         data["title"] + " " + data["authors"] + " " + data["description"]

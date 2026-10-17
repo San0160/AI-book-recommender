@@ -9,6 +9,7 @@ def client(toy_predictor):
     app_module.app.state.model_card = {"schema": 1, "books": 12, "model": {}, "evaluation": None}
     app_module.app.state.predictor = toy_predictor
     app_module.app.state.genres = sorted(set(toy_predictor.data["genre_clean"]))
+    app_module.RATE_LIMITER.hits.clear()
     # raise_server_exceptions=False so we see what a real client sees on a 500
     return TestClient(app_module.app, raise_server_exceptions=False)
 
@@ -30,7 +31,7 @@ def test_recommend_ok(client):
 
 def test_legacy_path_still_works(client):
     assert client.get("/recommend", params={"title": "Dune"}).status_code == 200
-    
+
 
 def test_model_endpoint(client):
     r = client.get("/v1/model")
@@ -78,3 +79,9 @@ def test_internal_errors_do_not_leak(client, toy_predictor, monkeypatch):
 def test_request_id_is_echoed(client):
     r = client.get("/health", headers={"X-Request-ID": "abc123"})
     assert r.headers["X-Request-ID"] == "abc123"
+
+def test_rate_limit_returns_429_with_retry_after(client, monkeypatch):
+    monkeypatch.setattr(app_module.RATE_LIMITER, "limit", 2)
+    assert [client.get("/v1/genres").status_code for _ in range(3)] == [200, 200, 429]
+    assert client.get("/v1/genres").headers["Retry-After"]
+    assert client.get("/health").status_code == 200

@@ -14,10 +14,15 @@ from pydantic import BaseModel
 from Book_recommender.constant import PROJECT_ROOT
 from Book_recommender.logging.log import logger
 from Book_recommender.pipeline.prediction import RecommenderPredictor
+from Book_recommender.utils.rate_limit import RateLimiter
 
 INDEX_HTML = PROJECT_ROOT / "templates" / "index.html"
 
 MODEL_CARD_PATH = PROJECT_ROOT / "artifacts" / "model_evaluation" / "model_card.json"
+
+RATE_LIMITER = RateLimiter(int(os.environ.get("RATE_LIMIT_PER_MINUTE", "120")))
+
+EXEMPT_PATHS = {"/", "/health", "/ready", "/docs", "/redoc", "/openapi.json"}
 
 
 def _load_model_card():
@@ -91,6 +96,20 @@ if _origins:
         allow_headers=["*"],
     )
 
+@app.middleware("http")
+async def rate_limit(request: Request, call_next):
+    path = request.url.path
+    if path in EXEMPT_PATHS or path.startswith("/static/"):
+        return await call_next(request)
+    client = request.client.host if request.client else "unknown"
+    allowed, remaining, retry_after = RATE_LIMITER.check(client)
+    if not allowed:
+        return JSONResponse({"detail": "Too many requests. Please slow down."},
+                            status_code=429, headers={"Retry-After": str(retry_after)})
+    response = await call_next(request)
+    if RATE_LIMITER.limit > 0:
+        response.headers["X-RateLimit-Remaining"] = str(remaining)
+    return response
 
 @app.middleware("http")
 async def request_context(request: Request, call_next):

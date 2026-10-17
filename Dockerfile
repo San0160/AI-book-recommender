@@ -23,7 +23,9 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/* \
     && pip install --no-cache-dir --upgrade pip setuptools wheel
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PYTHONPATH=/app/src \
-    LOG_TO_FILE=0 PORT=8080
+    LOG_TO_FILE=0 PORT=8080 \
+    FORWARDED_ALLOW_IPS=*
+    
 WORKDIR /app
 
 RUN useradd --create-home --uid 10001 app

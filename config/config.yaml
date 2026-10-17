@@ -4,7 +4,7 @@ artifacts_root: artifacts
 
 data_injection:
   root_dir: artifacts/data_injection
-  source_URL: https://huggingface.co/datasets/San0160/Books_enriched/resolve/main/books_enriched.csv  
+  source_URL: https://huggingface.co/datasets/San0160/Books_enriched/resolve/f25e7a6cdcd16b65a6d6f69f569b5e2067192f8b/books_enriched.csv  
   local_data_file: artifacts/data_injection/data.csv
   unzip_dir: artifacts/data_injection
 
